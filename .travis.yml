@@ -1,0 +1,26 @@
+branches:
+  only:
+  - master
+language: python
+python:
+  - "3.5"
+cache: pip
+install:
+  - pip install awscli
+script: ""
+deploy:
+  on:
+    branch: master
+  provider: s3
+  access_key_id: $AWS_ACCESS_KEY_ID
+  secret_access_key: $AWS_SECRET_ACCESS_KEY
+  bucket: www.saduwa.com
+  skip_cleanup: true
+  local_dir: dist
+  region: "eu-west-1"
+  endpoint: "www.saduwa.com.s3-website-eu-west-1.amazonaws.com"
+after_deploy:
+  # Allow `awscli` to make requests to CloudFront.
+  - if [ "$TRAVIS_BRANCH" = "master" ]; then aws configure set preview.cloudfront true; fi
+  # Invalidate every object in the targeted distribution.
+  - if [ "$TRAVIS_BRANCH" = "master" ]; then aws cloudfront create-invalidation --distribution-id E2KRC9J01UYD3N --paths "/*"; fi
